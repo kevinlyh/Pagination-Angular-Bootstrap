@@ -1,0 +1,8 @@
+<h2>Purpose</h2>
+<p>This website was created by Team 10. It was made for a assingnment in Full-stack, a paper at MIT.<br />Visitors feel free to browse through our website and use our content.</p>
+<h2>About Us</h2>
+<p>We are team 10 <br />We are students at MIT currently doing Software Engineering</p>
+<h2>Team 10:</h2>
+<p>Kevin Liu<br />Dilipkumar Dudhat<br />Lincoln Isaacs</p>
+<p><img src="../images/upload/CITSME9.gif" alt="" width="309" height="185" /><img src="../images/upload/SQRTME1.gif" alt="" width="260" height="195" /></p>
+<p>This is a test !</p>

@@ -1,0 +1,41 @@
+﻿
+<div id="outerDiv">
+
+
+    <div class="row">
+
+        @{
+        ViewData["Title"] = "Contact";
+        }
+        
+        <!--//20180327 Yanhua Liu add for testing upload images of TinyMCE -->
+        <script src="~/js/tinymce/tinymce.min.js"></script>
+        <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+        <script src="~/js/mytestfortinymce.js"></script>
+
+
+        
+
+
+        <div ng-app="myApp" ng-controller="myCtrl" ng-cloak>
+            <div ng-show="editState">
+                <form>
+                    <textarea id="myTestForTinymce">
+            
+            </textarea>
+                </form>
+            </div>
+
+            <div ng-hide="editState" id="contentDisp">
+
+            </div>
+            @{
+                if (ViewBag.isAdmin)
+                {
+                    <button class="btn btn-default" id="edit" ng-click="toggleEdit()" ng-model="edit">{{buttonValue}}</button>
+                    <button ng-show="editState" class="btn btn-default" id="cancel" ng-click="cancelEdit()">Cancel</button>
+                }
+            }
+        </div>
+    </div>
+</div>
