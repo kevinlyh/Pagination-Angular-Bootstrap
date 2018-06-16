@@ -1,0 +1,243 @@
+﻿<div id="outerDiv">
+
+
+    <div class="row">
+
+        @model IEnumerable<MVCManukauTech.ViewModels.CatalogViewModel>
+
+        @{
+            //Are we showing all the products or only one category?
+            if (ViewBag.CategoryName == null)
+            {
+                ViewBag.Title = "Catalog";
+            }
+            else
+            {
+                ViewBag.Title = "Catalog - " + ViewBag.CategoryName;
+            }
+            if (ViewBag.Discount == null)
+            {
+                ViewBag.Discount = 1;
+            }
+        }
+
+        <h2>@ViewBag.Title</h2>
+
+        @if (ViewBag.UseAngular != null)
+        {
+            <script src="http://ajax.googleapis.com/ajax/libs/angularjs/1.3.14/angular.min.js"></script>
+
+            <div ng-app="myApp" ng-controller="catalogList" ng-cloak>
+                <input class="hidden" type="text" id="categoryName" value="@ViewBag.CategoryName" />
+
+                <table class="table">
+                    <tr ng-repeat="item in products" style="vertical-align:top">
+                        <td>{{ item.Name }}</td>
+                        <td> <img src="{{item.ImageFileName}}" style="width:100px"></td>
+                        <!-- attempt add input field -->
+                        <td>
+                            <span ng-show="discount < 1">{{(item.UnitCost * discount)| number : 2}}&nbsp;<sup><del>{{item.UnitCost}}</del></sup></span>
+                            <span ng-show="discount >= 1">{{item.UnitCost}}</span>
+                        </td>
+                        <td>
+                            <p ng-bind-html="item.Description | unsafe"></p>
+                        </td>
+                        <td>
+                            {{item.CategoryName}}
+                        </td>
+                        <td>
+                            <a class="btn btn-info" href="~/OrderDetails/ShoppingCart?ProductId={{item.ProductId}}">Add&nbsp;to&nbsp;Cart</a>
+                        </td>
+                        <td>
+                            <a class="btn btn-info" href="/catalog/Details?ProductId={{item.ProductId}}">Details</a>
+                        </td>
+                    </tr>
+                </table>
+                <ul ng-class="{hidden: pagination.total <= pagination.config.count || !products}" class="pagination">
+
+                    @*LEI this i for the previous button in the page list*@
+                    <li ng-click="pagination.config.page > 1 ? pagination.config.page = pagination.config.page - 1 : ''"
+                        ng-class="{disabled: pagination.config.page == 1}"><a href="#">&laquo;</a></li>
+                    @*LEI this is for the current button in the page list*@
+                    <li ng-repeat="p in pagination.pages"
+                        ng-click="pagination.config.page = p"
+                        ng-class="{active: p == pagination.config.page}"><a href="#">{{p}}</a></li>
+                    @*LEI this is for the next button in the page list*@
+                    <li ng-click="pagination.config.page < pagination.totalPages ? pagination.config.page = pagination.config.page + 1 : ''"
+                        ng-class="{disabled: pagination.config.page == pagination.totalPages}"><a href="#">&raquo;</a></li>
+                </ul>
+            </div>
+
+            <script>
+        var discount = @ViewBag.Discount;
+        var _$http;
+                var _$scope;
+
+                //this is the angular function to initialize 
+
+                var app = angular.module('myApp', []);
+
+                
+        app.controller('catalogList', function ($scope, $http) {
+            _$http = $http;
+            _$scope = $scope;
+            $scope.discount = discount;
+            getProductsInfo(-1, totalReceive);
+                $scope.htmltest = '<h2>Test is Test</h2>';
+            /*
+                Pagination
+            */
+
+                // LEI if the total changes the _setPaginationPages function will be called
+            $scope.pagination = { total: 0, pages: [], totalPages:0, config: { count: 6, page: 1, size: 7 }, lastPage:0 };
+            $scope.$watch('pagination.total', function (total) {
+                _setPaginationPages(total);
+            });
+
+            $scope.$watch("pagination.config.page", function (page) {
+                _setPaginationPages($scope.pagination.total);
+                _getRespondents($scope.pagination.config);
+            });
+
+        });
+        app.filter('unsafe', function($sce) { return $sce.trustAsHtml; });
+                //LEI this function will get the the product details from server.
+        function getProductsInfo(page, succFunc) {
+            var url = "/Catalog/GetProducts";
+            var hasCategory = $('#categoryName').prop('value').length > 0;
+
+           
+                if (hasCategory) {
+                url += "?CategoryName=" + $('#categoryName').prop('value');
+            }
+            if (page > 0) {
+                url += (hasCategory ? "&" : "?") + "CurrentPage=" + page;
+                url += "&PageCount=" + _$scope.pagination.config.count;
+            }
+            _$http.get(url).success(succFunc);
+        }
+                //Lei this function will calculate the amount of pages and and the current page
+        function _setPaginationPages(total) {
+            if (total === null || !total || total <= _$scope.pagination.config.count) return;
+            var totalPages = Math.ceil(total / _$scope.pagination.config.count);
+            var pages = [];
+            var start = _$scope.pagination.config.page - Math.floor(_$scope.pagination.config.size / 2);
+            var finish = null;
+            console.log(_$scope.pagination.config);
+            console.log("totalPages:" + totalPages + " start:" + start + " total:" + total);
+            if ((start + _$scope.pagination.config.size - 1) > totalPages) {
+                start = totalPages - _$scope.pagination.config.size + 1;
+                //console.log("totalPages:" + totalPages + " start:" + start + " total:" + total);
+            }
+            if (start <= 0) {
+                start = 1;
+            }
+
+            finish = start + _$scope.pagination.config.size - 1;
+            if (finish > totalPages) {
+                finish = totalPages;
+            }
+            //console.log("finish:" + finish);
+
+            for (var i = start; i <= finish; i++) {
+                pages.push(i);
+            }
+            //console.log(pages);
+            _$scope.pagination.pages = pages;
+            _$scope.pagination.totalPages = totalPages;
+        }
+
+        function _getRespondents(_config) {
+            console.log("_getRespondents:" + _config.toString());
+            getProductsInfo(_config.page, productsReceive);
+        }
+        function totalReceive(totalObject) {
+            //console.log(totalObject);
+            console.log(_$scope.products);
+            _$scope.pagination.total = totalObject[0].Total;
+
+                }
+
+                // Lei this function will get the discount and the product date
+        function productsReceive(productsObject) {
+            //console.log("productsObject.length = " + productsObject.length);
+            _$scope.discount = productsObject.discount;
+            for (var i = 0; i < productsObject.data.length; i++) {
+                var unitCost = productsObject.data[i].UnitCost;
+                productsObject.data[i].UnitCost = parseFloat(unitCost).toFixed(2).toString();
+                productsObject.data[i].ImageFileName = "images/products/" + productsObject.data[i].ImageFileName;
+            }
+            _$scope.products = productsObject.data;
+        }
+        function xReceive(productsObject) {
+            //console.log("json.length = " + json.length);
+            for (var i = 0; i < productsObject.length; i++) {
+                var unitCost = productsObject[i].UnitCost;
+                productsObject[i].UnitCost = parseFloat(unitCost).toFixed(2).toString();
+                productsObject[i].ImageFileName = "~/Images/Products/" + productsObject[i].ImageFileName;
+            }
+            _$scope.products = productsObject;
+            _$scope.pagination.total = productsObject.length * 5;
+        }
+            </script>
+
+        }
+        else
+        {
+
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>
+                            Name
+                        </th>
+                        <th>
+                            ImageFileName
+                        </th>
+                        <th>
+                            UnitCost
+                        </th>
+                        <th>
+                            Description
+                        </th>
+                        <th>
+                            CategoryName
+                        </th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>
+                                @item.Name
+                            </td>
+                            <td>
+                                <img src="~/Images/Products/@item.ImageFileName" style="width:100px" />
+                            </td>
+                            <td>
+                                @item.UnitCost
+                            </td>
+                            <td>
+                                @item.Description
+                            </td>
+                            <td>
+                                @item.CategoryName
+                            </td>
+                            <td>
+                                <a href="~/OrderDetails/ShoppingCart?ProductId=@item.ProductId"><button>Add&nbsp;to&nbsp;Cart</button></a>
+                            </td>
+                            <td>
+                                <a href="/catalog/Details?ProductId=@item.ProductId"><button>Details</button></a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+
+        }
+        </div>
+</div>

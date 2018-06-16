@@ -1,0 +1,54 @@
+@using Microsoft.AspNetCore.Identity
+@using MVCManukauTech.Models
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject UserManager<ApplicationUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+<form asp-area="" asp-controller="Account" asp-action="Logout" method="post" id="logoutForm" class="navbar-right">
+    <div class="dropdown" style="padding:10px">
+        <button type="button" class="btn dropdown-toggle" id="settingDropMenu" data-toggle="dropdown">
+            Settings
+            <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="settingDropMenu">
+            @*140904 JPC add ProductsAdmin to links visible only to role Admin*@
+        @if (User.Identity.IsAuthenticated && User.IsInRole("Admin")) {
+            <li role="presentation">
+                <a role="menuitem" tabindex="-1" href="~/Products">ProductsAdmin</a>
+            </li>
+            <li role="presentation">
+                <a role="menuitem" tabindex="-1" href="~/Roles">RolesAdmin</a>
+            </li>
+            <li role="presentation">
+                <a role="menuitem" tabindex="-1" href="~/UserRolesAdmins">UsersAdmin</a>
+            </li>
+            <li role="presentation" class="divider"></li>
+        }          
+            <li role="presentation">
+                <a asp-area="" asp-controller="Manage" role="menuitem" tabindex="-1" asp-action="Index" title="Manage">Manage Account</a>
+            </li>
+            <li role="presentation">
+                <button type="submit" role="menuitem" class="btn btn-link hidden" id="logoutsubmit">Log out</button>
+                <a role="menuitem" tabindex="-1" href="#" id="aforsubmit">Log out</a>
+            </li>
+        </ul>
+    </div>
+</form>
+    <script>
+        $(function () {
+            $('#aforsubmit').click(function () {
+                $('#logoutsubmit').click();
+                return false;
+            });
+        });
+    </script>
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li><a asp-area="" asp-controller="Account" asp-action="Register">Register</a></li>
+        <li><a asp-area="" asp-controller="Account" asp-action="Login">Log in</a></li>
+    </ul>
+}
